@@ -58,7 +58,12 @@ defmodule App.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:websockex, "~> 0.4.3"},
+      {:cbor, "~> 1.0.1"},
+      {:req, "0.5.6"},
+      {:broadway, "1.1.0"},
+      {:circular_buffer, "~> 0.4.1"}
     ]
   end
 
