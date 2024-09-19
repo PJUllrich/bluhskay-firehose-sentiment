@@ -18,7 +18,9 @@ defmodule App.Application do
       # {App.Worker, arg},
       # Start to serve requests, typically the last entry
       AppWeb.Endpoint,
-      App.WebSocket
+      App.Buffer,
+      App.WebSocket,
+      App.Broadway
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

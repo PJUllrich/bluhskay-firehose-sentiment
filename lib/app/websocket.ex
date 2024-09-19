@@ -3,16 +3,18 @@ defmodule App.WebSocket do
 
   require Logger
 
-  @buffer_size 1000
   @url "wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos"
 
+  # Public Functions
+
   def start_link(_args) do
-    buffer = CircularBuffer.new(@buffer_size)
-    WebSockex.start_link(@url, __MODULE__, buffer)
+    WebSockex.start_link(@url, __MODULE__, [])
   end
 
+  # Callbacks
+
   def handle_frame(event, buffer) do
-    buffer = CircularBuffer.insert(buffer, event)
+    App.Buffer.insert_event(event)
     {:ok, buffer}
   end
 end

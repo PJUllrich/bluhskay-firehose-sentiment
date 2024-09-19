@@ -9,14 +9,14 @@ defmodule App.Broadway do
     Broadway.start_link(App.Broadway,
       name: BroadwayBlueskeyProcessor,
       producer: [
-        module: {Producer, []},
+        module: {App.Broadway.Producer, [allowed_messages: 10, interval: :timer.seconds(1)]},
         concurrency: 1
       ],
       processors: [
-        decoder: [concurrency: 2]
+        decoder: [concurrency: 1]
       ],
       batchers: [
-        fetch: [concurrency: 2, batch_size: 25]
+        fetch: [concurrency: 1, batch_size: 25]
       ]
     )
   end
@@ -25,7 +25,7 @@ defmodule App.Broadway do
     case process_data(data) do
       {:ok, data} ->
         message
-        |> Message.update_data(data)
+        |> Message.update_data(fn _ -> data end)
         |> Message.put_batcher(:fetch)
 
       {:skip, reason} ->
@@ -34,7 +34,8 @@ defmodule App.Broadway do
   end
 
   def handle_batch(:fetch, messages, _batch_info, _context) do
-    uris = Enum.map(messages, & &1.data)
+    uris = messages |> Enum.map(& &1.data) |> Enum.uniq()
+    IO.inspect(uris)
 
     case App.Bluesky.get_posts(uris) do
       {:ok, %{body: %{"posts" => posts}}} ->
