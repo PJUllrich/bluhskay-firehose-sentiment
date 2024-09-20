@@ -9,14 +9,18 @@ defmodule App.Broadway do
     Broadway.start_link(App.Broadway,
       name: BroadwayBlueskeyProcessor,
       producer: [
-        module: {App.Broadway.Producer, [allowed_messages: 10, interval: :timer.seconds(1)]},
-        concurrency: 1
+        module: {App.Broadway.Producer, []},
+        concurrency: 1,
+        rate_limiting: [
+          allowed_messages: 10,
+          interval: :timer.seconds(1)
+        ]
       ],
       processors: [
         decoder: [concurrency: 1]
       ],
       batchers: [
-        fetch: [concurrency: 1, batch_size: 25]
+        fetch: [concurrency: 1, batch_size: 10]
       ]
     )
   end
@@ -39,15 +43,23 @@ defmodule App.Broadway do
 
     case App.Bluesky.get_posts(uris) do
       {:ok, %{body: %{"posts" => posts}}} ->
+        IO.inspect(posts)
+
         Enum.map(messages, fn message ->
           post = Enum.find(posts, fn post -> post["uri"] == message.data end)
-          Message.update_data(message, fn _data -> post end)
+          message = Message.update_data(message, fn _data -> post end)
+          App.Analysis.Broadway.Producer.put_event(message)
         end)
 
       {:error, reason} ->
         Logger.error(inspect(reason))
         Enum.map(messages, fn message -> Message.put_batcher(message, :fetch) end)
     end
+  end
+
+  def handle_batch(:analysis, messages, _batch_info, _context) do
+    IO.inspect(messages)
+    messages
   end
 
   defp process_data({:binary, msg}) do

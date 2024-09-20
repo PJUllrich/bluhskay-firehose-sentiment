@@ -26,8 +26,6 @@ defmodule App.Buffer do
   end
 
   def handle_call({:get_events, demand}, _from, buffer) do
-    IO.inspect(buffer)
-
     {events, buffer} =
       Enum.reduce_while(1..demand//1, {[], buffer}, fn _idx, {events, buffer} ->
         case RingBuffer.take(buffer) do
@@ -35,9 +33,6 @@ defmodule App.Buffer do
           {event, buffer} -> {:cont, {[event | events], buffer}}
         end
       end)
-
-    IO.inspect(events)
-    IO.inspect(buffer)
 
     {:reply, events, buffer}
   end
