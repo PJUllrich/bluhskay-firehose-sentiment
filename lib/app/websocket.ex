@@ -3,7 +3,8 @@ defmodule App.WebSocket do
 
   require Logger
 
-  @url "wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos"
+  # @url "wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos"
+  @url "wss://jetstream.atproto.tools/subscribe\?wantedCollections=app.bsky.feed.post"
 
   # Public Functions
 

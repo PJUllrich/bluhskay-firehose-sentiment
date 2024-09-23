@@ -20,8 +20,9 @@ defmodule App.Application do
       AppWeb.Endpoint,
       App.Buffer,
       App.WebSocket,
-      App.Broadway,
-      App.Analysis.Broadway
+      App.Simplified.Broadway
+      # App.Broadway,
+      # App.Analysis.Broadway
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

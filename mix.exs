@@ -63,6 +63,7 @@ defmodule App.MixProject do
       {:cbor, "~> 1.0.1"},
       {:req, "0.5.6"},
       {:broadway, "1.1.0"},
+      {:broadway_dashboard, "~> 0.4.1"},
       {:ring_buffer, "~> 0.1.0"}
     ]
   end

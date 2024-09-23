@@ -28,11 +28,14 @@ defmodule App.Broadway do
   def handle_message(:decoder, %Message{data: data} = message, _) do
     case process_data(data) do
       {:ok, data} ->
+        IO.inspect(data)
+
         message
         |> Message.update_data(fn _ -> data end)
         |> Message.put_batcher(:fetch)
 
       {:skip, reason} ->
+        Logger.error(reason)
         Message.failed(message, reason)
     end
   end
@@ -62,6 +65,10 @@ defmodule App.Broadway do
     messages
   end
 
+  defp process_data({:text, post}) do
+    post |> Jason.decode() |> extract_uri()
+  end
+
   defp process_data({:binary, msg}) do
     with {:ok, _details, post_binary} <- CBOR.decode(msg),
          {:ok, post, _rest} <- CBOR.decode(post_binary) do
@@ -72,12 +79,16 @@ defmodule App.Broadway do
     end
   end
 
-  defp process_data(%{
+  defp extract_uri({:ok, %{"commit" => %{"rev" => rev}, "did" => did}}) do
+    {:ok, "at://#{did}/app.bsky.feed.post/#{rev}"}
+  end
+
+  defp extract_uri(%{
          "ops" => [%{"action" => "create", "path" => "app.bsky.feed.post/" <> id}],
          "repo" => repo
        }) do
     {:ok, "at://#{repo}/app.bsky.feed.post/#{id}"}
   end
 
-  defp process_data(_post), do: {:skip, :not_a_post}
+  defp extract_uri(_post), do: {:skip, "Not a Post"}
 end

@@ -37,7 +37,12 @@ defmodule AppWeb.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: AppWeb.Telemetry
+      live_dashboard "/dashboard",
+        metrics: AppWeb.Telemetry,
+        additional_pages: [
+          broadway: {BroadwayDashboard, pipelines: [BroadwayBlueskeySimplified]}
+        ]
+
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
