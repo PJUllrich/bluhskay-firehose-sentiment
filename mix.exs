@@ -69,7 +69,8 @@ defmodule App.MixProject do
       {:nx, "~> 0.7.0"},
       {:exla, "~> 0.7.0"},
       {:axon, "~> 0.6.1"},
-      {:kino, "~> 0.12.0"}
+      {:kino, "~> 0.12.0"},
+      {:timescale, "~> 0.1.1"}
     ]
   end
 

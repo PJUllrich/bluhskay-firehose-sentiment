@@ -3,7 +3,7 @@ defmodule App.Dumper do
 
   require Logger
 
-  @interval :timer.minutes(1)
+  @interval :timer.seconds(10)
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
@@ -24,7 +24,9 @@ defmodule App.Dumper do
 
   def handle_info(:dump, {sum, count}) do
     schedule_dump()
-    Logger.info("Dump: #{sum} #{count} - #{sum / count}")
+    average = if count == 0, do: 0.0, else: sum / count
+    Logger.info("Dump: #{sum} - #{count} - #{average}")
+    {:ok, _dp} = App.Datapoints.create_datapoint(%{average: average, sum: sum, count: count})
     {:noreply, {0.0, 0}}
   end
 
