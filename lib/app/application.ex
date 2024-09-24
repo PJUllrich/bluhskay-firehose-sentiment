@@ -17,7 +17,9 @@ defmodule App.Application do
       # Start a worker by calling: App.Worker.start_link(arg)
       # {App.Worker, arg},
       # Start to serve requests, typically the last entry
+      {Nx.Serving, serving: serving(), name: BertServing, batch_size: 15, batch_timeout: 100},
       AppWeb.Endpoint,
+      App.Dumper,
       App.Buffer,
       App.WebSocket,
       App.Simplified.Broadway
@@ -37,5 +39,14 @@ defmodule App.Application do
   def config_change(changed, _new, removed) do
     AppWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp serving() do
+    {:ok, bertweet} =
+      Bumblebee.load_model({:hf, "finiteautomata/bertweet-base-sentiment-analysis"})
+
+    {:ok, tokenizer} = Bumblebee.load_tokenizer({:hf, "vinai/bertweet-base"})
+
+    Bumblebee.Text.text_classification(bertweet, tokenizer)
   end
 end

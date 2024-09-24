@@ -16,7 +16,7 @@ defmodule App.Simplified.Broadway do
         default: [concurrency: 1]
       ],
       batchers: [
-        default: [concurrency: 1, batch_size: 10]
+        default: [concurrency: 1, batch_size: 15]
       ]
     )
   end
@@ -38,7 +38,23 @@ defmodule App.Simplified.Broadway do
 
   @impl true
   def handle_batch(:default, messages, _batch_info, _context) do
-    Logger.info(Enum.map(messages, & &1.data))
+    posts = Enum.map(messages, & &1.data)
+    {_time, result} = :timer.tc(fn -> Nx.Serving.batched_run(BertServing, posts) end)
+    # IO.inspect(time / 1_000_000)
+
+    sum =
+      Enum.reduce(result, 0, fn %{predictions: predictions}, acc ->
+        top_score = predictions |> Enum.sort_by(& &1.score, :desc) |> hd()
+
+        case top_score.label do
+          "POS" -> acc + 1
+          "NEU" -> acc
+          "NEG" -> acc - 1
+        end
+      end)
+
+    App.Dumper.add(sum, length(posts))
+
     messages
   end
 end

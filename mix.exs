@@ -64,7 +64,12 @@ defmodule App.MixProject do
       {:req, "0.5.6"},
       {:broadway, "1.1.0"},
       {:broadway_dashboard, "~> 0.4.1"},
-      {:ring_buffer, "~> 0.1.0"}
+      {:ring_buffer, "~> 0.1.0"},
+      {:bumblebee, "~> 0.5.0"},
+      {:nx, "~> 0.7.0"},
+      {:exla, "~> 0.7.0"},
+      {:axon, "~> 0.6.1"},
+      {:kino, "~> 0.12.0"}
     ]
   end
 

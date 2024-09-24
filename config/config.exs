@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :nx, default_backend: EXLA.Backend
+
 config :app,
   ecto_repos: [App.Repo],
   generators: [timestamp_type: :utc_datetime]
