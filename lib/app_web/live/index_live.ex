@@ -6,6 +6,10 @@ defmodule AppWeb.IndexLive do
   def render(assigns) do
     ~H"""
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex space-x-2">
+        <.link patch={~p"/?#{[tab: :datapoints]}"}>Datapoints</.link>
+        <.link patch={~p"/?#{[tab: :averages]}"}>Averages</.link>
+      </div>
       <div id="graph" phx-hook="EChart" phx-update="ignore" class="w-full h-[400px]" />
       <div class="mt-8 flow-root">
         <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -60,6 +64,32 @@ defmodule AppWeb.IndexLive do
   end
 
   def mount(_params, _session, socket) do
+    {:ok,
+     socket
+     |> stream_configure(:datapoints, dom_id: fn dp -> to_string(dp.inserted_at) end)
+     |> stream(:datapoints, [])
+     |> stream_configure(:averages, dom_id: fn dp -> to_string(dp.datetime) end)
+     |> stream(:averages, [])}
+  end
+
+  def handle_params(params, _uri, socket) do
+    tab = Map.get(params, "tab", "datapoints")
+
+    case tab do
+      "datapoints" ->
+        {:noreply, setup_datapoints(socket)}
+
+      "averages" ->
+        {:noreply, setup_averages(socket)}
+    end
+  end
+
+  def handle_info({:datapoint, datapoint}, socket) do
+    {:noreply,
+     socket |> push_items([datapoint], "datapoints") |> stream_insert(:datapoints, datapoint)}
+  end
+
+  defp setup_datapoints(socket) do
     items =
       if connected?(socket) do
         Phoenix.PubSub.subscribe(App.PubSub, "new-datapoint")
@@ -68,18 +98,23 @@ defmodule AppWeb.IndexLive do
         []
       end
 
-    {:ok,
-     socket
-     |> stream_configure(:datapoints, dom_id: fn dp -> to_string(dp.inserted_at) end)
-     |> stream(:datapoints, items)
-     |> push_datapoints(items)}
+    push_items(socket, items, "datapoints", true)
   end
 
-  def handle_info({:datapoint, datapoint}, socket) do
-    {:noreply, socket |> push_datapoints([datapoint]) |> stream_insert(:datapoints, datapoint)}
+  defp setup_averages(socket) do
+    items =
+      if connected?(socket) do
+        Phoenix.PubSub.unsubscribe(App.PubSub, "new-datapoint")
+        Datapoints.get_average_per_minute()
+      else
+        []
+      end
+
+    push_items(socket, items, "averages", true)
   end
 
-  defp push_datapoints(socket, datapoints) do
-    push_event(socket, "datapoints", %{datapoints: datapoints})
+  defp push_items(socket, items, name, reset \\ false) do
+    socket = if reset, do: push_event(socket, "reset-" <> name, %{}), else: socket
+    push_event(socket, name, %{items: items})
   end
 end

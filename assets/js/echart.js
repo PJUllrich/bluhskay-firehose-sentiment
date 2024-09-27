@@ -76,15 +76,15 @@ export default {
     });
 
     this.handleEvent("datapoints", function (data) {
-      const datapoints = data.datapoints.sort(
+      const items = data.items.sort(
         (a, b) => new Date(a.inserted_at) - new Date(b.inserted_at),
       );
-      const newAverages = datapoints.map((datapoint) => [
+      const newAverages = items.map((datapoint) => [
         datapoint.inserted_at,
         datapoint.average,
       ]);
 
-      const newCounts = datapoints.map((datapoint) => [
+      const newCounts = items.map((datapoint) => [
         datapoint.inserted_at,
         datapoint.count,
       ]);
@@ -102,6 +102,59 @@ export default {
           {
             name: "Post Count",
             data: [...currentCounts, ...newCounts],
+          },
+        ],
+      });
+    });
+
+    this.handleEvent("averages", function (data) {
+      const items = data.items.sort(
+        (a, b) => new Date(a.inserted_at) - new Date(b.inserted_at),
+      );
+
+      const newAverages = items.map((datapoint) => [
+        datapoint.inserted_at,
+        datapoint.average,
+      ]);
+
+      const currentOption = chart.getOption();
+      const currentAverages = currentOption.series[0].data || [];
+
+      chart.setOption({
+        series: [
+          {
+            name: "Average Sentiment",
+            data: [...currentAverages, ...newAverages],
+          },
+        ],
+      });
+    });
+
+    this.handleEvent("reset-datapoints", function () {
+      chart.setOption({
+        series: [
+          {
+            name: "Average Sentiment",
+            data: [],
+          },
+          {
+            name: "Post Count",
+            data: [],
+          },
+        ],
+      });
+    });
+
+    this.handleEvent("reset-averages", function () {
+      chart.setOption({
+        series: [
+          {
+            name: "Average Sentiment",
+            data: [],
+          },
+          {
+            name: "Post Count",
+            data: [],
           },
         ],
       });

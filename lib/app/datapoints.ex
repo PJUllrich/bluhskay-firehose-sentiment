@@ -22,13 +22,17 @@ defmodule App.Datapoints do
   end
 
   def get_average_per_minute() do
-    Ecto.Adapters.SQL.query!(Repo, """
-      SELECT
-          time_bucket('1 minute'::interval, inserted_at) as dt,
-          average(average) AS stats
-      FROM datapoints
-      GROUP BY time_bucket('1 minute'::interval, inserted_at)
-    """)
+    result =
+      Ecto.Adapters.SQL.query!(Repo, """
+        SELECT
+            time_bucket('1 minute'::interval, inserted_at) as bucket,
+            avg(average)
+        FROM datapoints
+        GROUP BY bucket
+        ORDER BY bucket ASC;
+      """)
+
+    Enum.map(result.rows, fn [dt, avg] -> %{inserted_at: dt, average: avg} end)
   end
 
   @doc """
